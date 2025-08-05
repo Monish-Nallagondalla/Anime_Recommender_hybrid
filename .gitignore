@@ -1,3 +1,4 @@
 artifacts/raw
 venv
 Anime_recommender.egg-info
+.conda

@@ -38,7 +38,7 @@ class DataIngestion:
                     blob = bucket.blob(file_name)
                     blob.download_to_filename(file_path)
 
-                    logger.info("Downloading Smaller Files ie anime and anime_with synopsis")
+                    logger.info("Downloading Smaller Files ie anime and anime_with_synopsis")
         
         except Exception as e:
             logger.error("Error while downloading data from GCP")
