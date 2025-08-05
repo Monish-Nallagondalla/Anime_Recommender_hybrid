@@ -1,6 +1,6 @@
 import os
+import shutil
 import pandas as pd
-from google.cloud import storage
 from src.logger import get_logger
 from src.custom_exception import CustomException
 from config.paths_config import *
@@ -9,55 +9,47 @@ from utils.common_functions import read_yaml
 logger = get_logger(__name__)
 
 class DataIngestion:
-    def __init__(self,config):
+    def __init__(self, config):
         self.config = config["data_ingestion"]
-        self.bucket_name = self.config["bucket_name"]
-        self.file_names = self.config["bucket_file_names"]
+        self.source_dir = os.path.join(RAW_DIR, "archive")
+        self.file_names = self.config["bucket_file_names"]  # reuse same list from YAML
 
-        os.makedirs(RAW_DIR,exist_ok=True)
+        os.makedirs(RAW_DIR, exist_ok=True)
+        logger.info("Data Ingestion Started (Local Mode)...")
 
-        logger.info("Data Ingestion Started....")
-
-    def download_csv_from_gcp(self):
+    def copy_from_local(self):
         try:
-
-            client  = storage.Client()
-            bucket = client.bucket(self.bucket_name)
-
             for file_name in self.file_names:
-                file_path = os.path.join(RAW_DIR,file_name)
+                src_path = os.path.join(self.source_dir, file_name)
+                dest_path = os.path.join(RAW_DIR, file_name)
 
-                if file_name=="animelist.csv":
-                    blob = bucket.blob(file_name)
-                    blob.download_to_filename(file_path)
+                if not os.path.exists(src_path):
+                    raise FileNotFoundError(f"{file_name} not found in {self.source_dir}")
 
-                    data = pd.read_csv(file_path,nrows=5000000)
-                    data.to_csv(file_path,index=False)
-                    logger.info("Large file detected Only downloading 5M rows")
+                # Special handling for large file
+                if file_name == "animelist.csv":
+                    df = pd.read_csv(src_path, nrows=5000000)
+                    df.to_csv(dest_path, index=False)
+                    logger.info("Copied animelist.csv with 5M rows")
                 else:
-                    blob = bucket.blob(file_name)
-                    blob.download_to_filename(file_path)
+                    shutil.copy(src_path, dest_path)
+                    logger.info(f"Copied file: {file_name}")
 
-                    logger.info("Downloading Smaller Files ie anime and anime_with_synopsis")
-        
         except Exception as e:
-            logger.error("Error while downloading data from GCP")
-            raise CustomException("Failed to download data",e)
-        
+            logger.error("Error while copying data from local archive")
+            raise CustomException("Failed to copy data", e)
+
     def run(self):
         try:
-            logger.info("Starting Data Ingestion Process....")
-            self.download_csv_from_gcp()
-            logger.info("Data Ingestion Completed...")
+            logger.info("Starting Local Data Ingestion Process....")
+            self.copy_from_local()
+            logger.info("Local Data Ingestion Completed...")
         except CustomException as ce:
             logger.error(f"CustomException : {str(ce)}")
         finally:
             logger.info("Data Ingestion DONE...")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     data_ingestion = DataIngestion(read_yaml(CONFIG_PATH))
     data_ingestion.run()
-
-
-
