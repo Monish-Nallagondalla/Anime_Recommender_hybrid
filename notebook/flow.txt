@@ -1,0 +1,84 @@
+START
+  │
+  ▼
+[Raw Data]
+  - Anime dataset (df)
+    - Columns: anime_id, name, genre, eng_version, etc.
+  - User ratings dataset (rating_df)
+    - Columns: user_id, anime_id, rating
+  │
+  ▼
+[Preprocessing / Encoding]
+  - Map users and anime to continuous indexes:
+      user2user_encoded, user2user_decoded
+      anime2anime_encoded, anime2anime_decoded
+  - Prepare train/test arrays:
+      X_train_array, X_test_array
+      y_train, y_test
+  │
+  ▼
+[Model: RecommenderNet()]
+  Inputs:
+    - user_id
+    - anime_id
+  Embeddings:
+    - user_embedding (size 128)
+    - anime_embedding (size 128)
+  Interaction:
+    - Dot product of embeddings (cosine similarity)
+  Dense + Activation:
+    - Dense(1) → Sigmoid → probability of liking
+  Compile:
+    - Loss: binary_crossentropy
+    - Optimizer: Adam
+  │
+  ▼
+[Training the Model]
+  - Learning Rate Scheduler (lrfn)
+  - ModelCheckpoint → save best weights
+  - EarlyStopping → stop if val_loss stops improving
+  - Batch training (X_train_array, y_train)
+  - Output: Trained model with learned embeddings
+  │
+  ▼
+[Extract Embeddings]
+  - user_weights = extract_weights("user_embedding", model)
+  - anime_weights = extract_weights("anime_embedding", model)
+  - Each user/anime now has a vector representation
+  │
+  ▼
+[Similarity Computations]
+  ├─ find_similar_users(user_id, ...) → similar users
+  └─ find_similar_animes(anime_name, ...) → similar anime
+  │
+  ▼
+[Hybrid Recommendation Function]
+  Input: user_id, user_weight, content_weight
+  Steps:
+    1. User-Based Recommendation:
+        - Find similar users
+        - Get what they liked (user_recommended_anime_list)
+    2. Content-Based Recommendation:
+        - For each anime in user list → find similar animes
+        - Merge into content_recommended_animes
+    3. Combine Scores:
+        - Score = user_weight for user-based
+        - Score = content_weight for content-based
+        - If anime appears in both → sum weights
+    4. Sort Scores:
+        - Descending → top recommendations
+  Output: top 10 anime names for user
+  │
+  ▼
+[Optional: Additional Features]
+  - Can return similarity scores
+  - Can exclude already watched anime
+  - Can adjust weights for hybrid recommendation
+  │
+  ▼
+[Output]
+  - Recommended anime list
+  - Example: ['Naruto', 'Bleach', 'One Piece', 'Naruto Shippuden', 'Boruto']
+  │
+  ▼
+END
