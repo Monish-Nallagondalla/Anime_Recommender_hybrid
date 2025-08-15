@@ -36,3 +36,25 @@ class DataProcessor:
             logger.info("Data loaded sucesfully for Data Processing")
         except Exception as e:
             raise CustomException("Failed to load data",sys)
+
+    def filter_users(self,min_rating):
+        try:
+            n_ratings = self.rating_df["user_id"].value_counts()
+            n_ratings = self.rating_df[self.rating_df['user_id'].isin(self.n_ratings[n_ratings>=400])].copy()
+
+            logger.info("Filtered users successfully....")
+        except Exception as e:
+            raise CustomException("Failed to filter data",sys)
+        
+
+    def scale_rating(self):
+        try:
+            min_rating =min(self.rating_df["rating"])
+            max_rating = max(self.rating_df['rating'])
+            self.rating_df["rating"] = self.rating_df["rating"].apply(lambda x: (x-min_rating)/(max_rating-min_rating)).values.astype(np.float64)
+            logger.info("Scalind done for Processing ")
+        except Exception as e:
+            raise CustomException("Failed to scale data",sys)
+        
+
+    def 
