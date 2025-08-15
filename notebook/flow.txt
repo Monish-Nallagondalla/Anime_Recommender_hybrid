@@ -82,3 +82,31 @@ START
   │
   ▼
 END
+
+
+
+🟢 Anime Recommender – One-Line Flow
+
+Raw Data: Collect anime info (df) and user ratings (rating_df).
+
+Preprocessing: Encode user IDs and anime IDs into continuous indexes for training.
+
+Model (RecommenderNet): Input user & anime → embeddings → dot product → sigmoid → predicted probability of liking.
+
+Training: Use binary cross-entropy loss, Adam optimizer, learning rate schedule, early stopping, and checkpointing.
+
+Extract Embeddings: Pull user_embedding and anime_embedding vectors from the trained model.
+
+User Similarity: Use user embeddings to find similar users.
+
+Content Similarity: Use anime embeddings to find similar animes for each user-preferred anime.
+
+Hybrid Recommendation: Combine user-based and content-based scores using weights → sum if overlap → rank by total score.
+
+Output Recommendations: Return top N anime names for the user.
+
+💡 Memory Tip:
+
+Data → Train → Embeddings → Similarity → Hybrid → Output
+
+Think of embeddings as “hidden taste profiles” and dot product as compatibility.
